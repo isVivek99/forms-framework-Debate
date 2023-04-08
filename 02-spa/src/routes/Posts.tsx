@@ -1,9 +1,29 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import "./blog.css";
 
 type Post = { id: string; title: string; desc: string; content: string };
 
+type FormValues = {
+  title: string;
+  desc: string;
+  content: string;
+};
+
+const resolver: Resolver<FormValues> = async (values) => {
+  return {
+    values: values.title ? values : {},
+    errors: !values.title
+      ? {
+          title: {
+            type: "required",
+            message: "This is required.",
+          },
+        }
+      : {},
+  };
+};
+let renderCount = 0;
 const Posts = () => {
   const [posts, setPosts] = React.useState<Array<Post>>([]);
   const [statuses, setStatuses] = React.useState<{
@@ -16,9 +36,10 @@ const Posts = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({ resolver });
+
+  renderCount++;
 
   // initial load of posts
   React.useEffect(() => {
@@ -30,12 +51,11 @@ const Posts = () => {
       });
   }, []);
 
-  React.useEffect(() => {
-    console.log(posts);
-  }, [posts]);
+  console.log(errors);
 
   return (
     <div className='w-2-3 m-auto'>
+      renderCount:{renderCount}
       <div className='flex'>
         <div className='flex-basis-1-3'>
           <ul hidden={!posts.length}>
@@ -54,38 +74,14 @@ const Posts = () => {
             <h1>My Blog</h1>
           </div>
           <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              const form = event.currentTarget;
-              console.log(form);
-
-              const titleInput = form.elements.namedItem(
-                "title"
-              ) as HTMLInputElement;
-              const descInput = form.elements.namedItem(
-                "desc"
-              ) as HTMLInputElement;
-              const contentInput = form.elements.namedItem(
-                "content"
-              ) as HTMLInputElement;
-
-              console.log(titleInput, descInput, contentInput);
-
-              const title = titleInput.value.trim();
-              const desc = descInput.value.trim();
-              const content = contentInput.value.trim();
-
-              if (
-                title.length === 0 ||
-                desc.length === 0 ||
-                content.length === 0
-              )
-                return;
+            onSubmit={handleSubmit((data, e) => {
+              const { title, desc, content } = data;
+              e?.target.reset();
               setPosts([
                 ...posts,
                 { title, desc, content, id: Math.random().toFixed(2) },
               ]);
-              form.reset();
+              // form.reset();
               setStatuses((old) => ({ ...old, creatingPost: "loading" }));
               fetch(`http://localhost:4131/api/posts`, {
                 method: "POST",
@@ -102,30 +98,34 @@ const Posts = () => {
 
                   setStatuses((old) => ({ ...old, creatingPost: "idle" }));
                 });
-            }}
+            })}
           >
             <div className='flex flex-col'>
               <label htmlFor='input-1'>
                 <h3>title</h3>
               </label>
               <input
-                type='text'
                 id='input-1'
-                className='w-100'
-                autoFocus
+                className={`w-100 ${errors.title?.message ? "error" : ""}`}
                 data-pending={statuses.creatingPost === "loading"}
-                {...register("title")}
+                {...register("title", { required: "this field is required" })}
               />
+
+              <p className='error'>{errors.title?.message}</p>
               <label htmlFor='input-2'>
                 <h3>desc</h3>
               </label>
               <input
                 type='text'
                 id='input-2'
-                className='w-100'
-                {...register("desc")}
+                className={`w-100 ${errors.desc?.message ? "error" : ""}`}
+                {...register("desc", {
+                  required: "This field is required.",
+                  minLength: { value: 4, message: "min length is 4" },
+                })}
                 data-pending={statuses.creatingPost === "loading"}
               />
+              <p className='error'>{errors.desc?.message}</p>
               <label htmlFor='input-3'>
                 <h3>content</h3>
               </label>
@@ -133,9 +133,13 @@ const Posts = () => {
                 id='input-3'
                 cols={30}
                 rows={10}
-                {...register("content")}
+                className={`w-100 ${errors.content?.message ? "error" : ""}`}
+                {...register("content", {
+                  required: "this filed is also required.",
+                })}
                 data-pending={statuses.creatingPost === "loading"}
               ></textarea>
+              <p className='error'>{errors.content?.message}</p>
             </div>
             <div className='flex justify-end'>
               <button
