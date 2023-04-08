@@ -92,6 +92,14 @@ button {
 .error {
   color: rgb(185, 28, 28);
 }
+.input-error {
+  border: 1px solid rgb(185, 28, 28);
+}
+.input-error .input:focus {
+  outline: none !important;
+  border: 1px solid rgb(185, 28, 28);
+  box-shadow: 0 0 10px #719ece;
+}
 
 .create-form {
   position: relative;

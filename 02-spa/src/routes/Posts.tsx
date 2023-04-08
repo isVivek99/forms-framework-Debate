@@ -11,11 +11,27 @@ type FormValues = {
 };
 
 const resolver: Resolver<FormValues> = async (values) => {
+  console.log(values);
+
   return {
     values: values.title ? values : {},
     errors: !values.title
       ? {
           title: {
+            type: "required",
+            message: "This is required.",
+          },
+        }
+      : !values.desc
+      ? {
+          desc: {
+            type: "required",
+            message: "This is required.",
+          },
+        }
+      : !values.content
+      ? {
+          content: {
             type: "required",
             message: "This is required.",
           },
@@ -77,11 +93,12 @@ const Posts = () => {
             onSubmit={handleSubmit((data, e) => {
               const { title, desc, content } = data;
               e?.target.reset();
+
               setPosts([
                 ...posts,
                 { title, desc, content, id: Math.random().toFixed(2) },
               ]);
-              // form.reset();
+
               setStatuses((old) => ({ ...old, creatingPost: "loading" }));
               fetch(`http://localhost:4131/api/posts`, {
                 method: "POST",
@@ -106,9 +123,11 @@ const Posts = () => {
               </label>
               <input
                 id='input-1'
-                className={`w-100 ${errors.title?.message ? "error" : ""}`}
+                className={`w-100 ${
+                  errors.title?.message ? "input-error" : ""
+                }`}
                 data-pending={statuses.creatingPost === "loading"}
-                {...register("title", { required: "this field is required" })}
+                {...register("title", { required: "this field is required." })}
               />
 
               <p className='error'>{errors.title?.message}</p>
@@ -116,14 +135,12 @@ const Posts = () => {
                 <h3>desc</h3>
               </label>
               <input
-                type='text'
                 id='input-2'
-                className={`w-100 ${errors.desc?.message ? "error" : ""}`}
-                {...register("desc", {
-                  required: "This field is required.",
-                  minLength: { value: 4, message: "min length is 4" },
-                })}
+                className={`w-100 ${errors.desc?.message ? "input-error" : ""}`}
                 data-pending={statuses.creatingPost === "loading"}
+                {...register("desc", {
+                  required: "this field is required.",
+                })}
               />
               <p className='error'>{errors.desc?.message}</p>
               <label htmlFor='input-3'>
@@ -133,7 +150,9 @@ const Posts = () => {
                 id='input-3'
                 cols={30}
                 rows={10}
-                className={`w-100 ${errors.content?.message ? "error" : ""}`}
+                className={`w-100 ${
+                  errors.content?.message ? "input-error" : ""
+                }`}
                 {...register("content", {
                   required: "this filed is also required.",
                 })}
