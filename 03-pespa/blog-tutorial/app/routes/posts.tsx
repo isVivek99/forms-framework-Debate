@@ -68,23 +68,23 @@ const Posts = () => {
   }, []);
 
   return (
-    <div className=' m-auto'>
+    <div className=" m-auto">
       renderCount:{renderCount}
-      <div className='flex'>
-        <div className='flex-basis-1-3'>
+      <div className="flex">
+        <div className="flex-basis-1-3">
           <ul hidden={!posts.length}>
             {posts.map((post, i) => (
               <li key={i}>
-                <p className='bold my-1'>{post.title}</p>
-                <p className='bold my-1'>{post.desc}</p>
+                <p className="bold my-1">{post.title}</p>
+                <p className="bold my-1">{post.desc}</p>
               </li>
             ))}
           </ul>
         </div>
-        <div className='border-r-2 px-2 mx-2'></div>
+        <div className="mx-2 border-r-2 px-2"></div>
 
-        <div className='flex-basis-2-3'>
-          <div className='border-b-2 border-color-brown'>
+        <div className="flex-basis-2-3">
+          <div className="border-color-brown border-b-2">
             <h1>My Blog</h1>
           </div>
           <form
@@ -115,12 +115,12 @@ const Posts = () => {
                 });
             })}
           >
-            <div className='flex flex-col'>
-              <label htmlFor='input-1'>
+            <div className="flex flex-col">
+              <label htmlFor="input-1">
                 <h3>title</h3>
               </label>
               <input
-                id='input-1'
+                id="input-1"
                 className={`w-100 ${
                   errors.title?.message ? "input-error" : ""
                 }`}
@@ -128,24 +128,24 @@ const Posts = () => {
                 {...register("title", { required: "this field is required." })}
               />
 
-              <p className='error'>{errors.title?.message}</p>
-              <label htmlFor='input-2'>
+              <p className="error">{errors.title?.message}</p>
+              <label htmlFor="input-2">
                 <h3>desc</h3>
               </label>
               <input
-                id='input-2'
+                id="input-2"
                 className={`w-100 ${errors.desc?.message ? "input-error" : ""}`}
                 data-pending={statuses.creatingPost === "loading"}
                 {...register("desc", {
                   required: "this field is required.",
                 })}
               />
-              <p className='error'>{errors.desc?.message}</p>
-              <label htmlFor='input-3'>
+              <p className="error">{errors.desc?.message}</p>
+              <label htmlFor="input-3">
                 <h3>content</h3>
               </label>
               <textarea
-                id='input-3'
+                id="input-3"
                 cols={30}
                 rows={10}
                 className={`w-100 ${
@@ -156,11 +156,11 @@ const Posts = () => {
                 })}
                 data-pending={statuses.creatingPost === "loading"}
               ></textarea>
-              <p className='error'>{errors.content?.message}</p>
+              <p className="error">{errors.content?.message}</p>
             </div>
-            <div className='flex justify-end'>
+            <div className="flex justify-end">
               <button
-                type='submit'
+                type="submit"
                 disabled={statuses.creatingPost === "loading"}
               >
                 create post
