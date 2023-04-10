@@ -1,5 +1,5 @@
 {
-  "name": "04-spa-react-router",
+  "name": "02-spa-react-router",
   "dependencies": {
     "@types/node": "^18.11.7",
     "@types/react": "^18.0.23",

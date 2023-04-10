@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  useLocation,
-  Link,
+  useTransition,
   useLoaderData,
-  useFetcher,
+  useActionData,
   Form,
 } from "@remix-run/react";
-import { ActionArgs, json, LinksFunction } from "@remix-run/node";
+import { ActionArgs, json, redirect, LinksFunction } from "@remix-run/node";
+import { z } from "zod";
 import invariant from "tiny-invariant";
 import postStylesheet from "./blog.css";
 import * as db from "../db";
@@ -23,27 +23,40 @@ export async function loader() {
 }
 
 export async function action({ request }: ActionArgs) {
-  let formData = await request.formData();
-  const title = formData.get("title");
-  const desc = formData.get("title");
-  const content = formData.get("title");
-  invariant(typeof title === "string", "title must be a string");
-  invariant(typeof desc === "string", "desc must be a string");
-  invariant(typeof content === "string", "content must be a string");
-  console.log({ title, desc, content });
-  await db.createPost({ title, desc, content });
+  let formDataPayload = Object.fromEntries(await request.formData());
+  const { title, desc, content } = formDataPayload as Post;
 
-  return null;
+  const errors = {
+    title: title ? null : "title is required",
+    desc: desc ? null : "desc is required",
+    content: content ? null : "content is required",
+  };
+
+  const hasErrors = Object.values(errors).some((errorMessage) => errorMessage);
+  if (hasErrors) {
+    return json(errors);
+  }
+  try {
+    await db.createPost({ title, desc, content });
+    return redirect(`/posts`);
+  } catch (error) {
+    console.error(`form not submitted ${error}`);
+    return redirect(`/?error=form-not-submitted`);
+  }
 }
 
 export default function Posts() {
   const data = useLoaderData() as { posts: Array<Post> };
 
-  const createFetcher = useFetcher();
-  const clearFetcher = useFetcher();
-  const toggleAllFetcher = useFetcher();
-  const createFormRef = React.useRef<HTMLFormElement>(null);
-  const location = useLocation();
+  const errors = useActionData();
+  const transition = useTransition();
+
+  const text =
+    transition.state === "submitting"
+      ? "Saving..."
+      : transition.state === "loading"
+      ? "Saved!"
+      : "create post";
 
   return (
     <div className=" m-auto">
@@ -51,7 +64,7 @@ export default function Posts() {
         <div className="flex-basis-1-3">
           <ul hidden={!data.posts.length}>
             {data.posts.map((post, i) => (
-              <li key={i}>
+              <li style={{ marginBottom: "20px" }} key={i}>
                 <p className="bold my-1">{post.title}</p>
                 <p className="bold my-1">{post.desc}</p>
               </li>
@@ -64,7 +77,15 @@ export default function Posts() {
           <div className="border-color-brown border-b-2">
             <h1>My Blog</h1>
           </div>
-          <Form method="post">
+          <Form
+            method="post"
+            onSubmit={(event) => {
+              const form = event.currentTarget;
+              requestAnimationFrame(() => {
+                form.reset();
+              });
+            }}
+          >
             <div className="flex flex-col">
               <label htmlFor="input-1">
                 <h3>title</h3>
@@ -74,9 +95,13 @@ export default function Posts() {
                 id="input-1"
                 className="w-100"
                 autoFocus
-                //data-pending={statuses.creatingPost === "loading"}
+                data-pending={
+                  transition.state === "submitting" ||
+                  transition.state === "loading"
+                }
                 name="title"
               />
+              {errors?.title && <p className="error">{errors.title}</p>}
               <label htmlFor="input-2">
                 <h3>desc</h3>
               </label>
@@ -85,8 +110,12 @@ export default function Posts() {
                 id="input-2"
                 className="w-100"
                 name="desc"
-                //data-pending={statuses.creatingPost === "loading"}
+                data-pending={
+                  transition.state === "submitting" ||
+                  transition.state === "loading"
+                }
               />
+              {errors?.desc && <p className="error">{errors.desc}</p>}
               <label htmlFor="input-3">
                 <h3>content</h3>
               </label>
@@ -95,15 +124,22 @@ export default function Posts() {
                 cols={30}
                 rows={10}
                 name="content"
-                //data-pending={statuses.creatingPost === "loading"}
+                data-pending={
+                  transition.state === "submitting" ||
+                  transition.state === "loading"
+                }
               ></textarea>
+              {errors?.content && <p className="error">{errors.content}</p>}
             </div>
             <div className="flex justify-end">
               <button
                 type="submit"
-                // disabled={statuses.creatingPost === "loading"}
+                disabled={
+                  transition.state === "submitting" ||
+                  transition.state === "loading"
+                }
               >
-                create post
+                {text}
               </button>
             </div>
           </Form>
