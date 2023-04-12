@@ -16,11 +16,11 @@ export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
 };
 
-export async function loader({ request }: LoaderArgs) {
-  return json({
-    user: await getUser(request),
-  });
-}
+// export async function loader({ request }: LoaderArgs) {
+//   return json({
+//     user: await getUser(request),
+//   });
+// }
 
 export default function App() {
   return (
