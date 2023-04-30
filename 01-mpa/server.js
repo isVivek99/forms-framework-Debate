@@ -30,17 +30,14 @@ async function handleFormPost(req, res) {
       break;
     }
   }
-
-  console.log("asd", req.url);
   res.redirect(req.url);
 }
 
 function renderListItem({ title, description }) {
   return /* html */ `
 		<li class="post">
-					<h5> ${title}</h5>
-					<h5> ${description}</h5>
-				
+			<h5> ${title}</h5>
+			<h5> ${description}</h5>	
 		</li>
 	`;
 }
